@@ -1,7 +1,0 @@
-[package]
-name = "bk_xml_reader"
-version = "0.1.0"
-authors = ["Charles J. Schneider <schneider@br-tech.de>"]
-
-[dependencies]
-xml-rs = "0.3"
