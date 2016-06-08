@@ -1,26 +1,40 @@
 # Class stubs for programmatic object creation -------------------------------
 class Device(object):
-    hide_type = []
-    rx_pdo = []
-    tx_pdo = []
+    def __init__(self):
+        self.name = []
+        self.url = []
+        self.hide_type = []
+        self.fmmu = []
+        self.sm = []
+        self.rx_pdo = []
+        self.tx_pdo = []
     pass
 
 class Eeprom(object):
     pass
 
 class Dc(object):
-    op_mode = []
+    def __init__(self):
+        self.op_mode = []
     pass
 
 class DcOpMode(object):
     pass
 
+class Fmmu(object):
+    pass
+
+class Sm (object):
+    pass
+
 class TxPdo(object):
-    entry = []
+    def __init__(self):
+        self.entry = []
     pass
 
 class RxPdo(object):
-    entry = []
+    def __init__(self):
+        self.entry = []
     pass
 
 class PdoEntry(object):
@@ -30,20 +44,38 @@ class Mailbox(object):
     pass
 
 # Utility functions ---------------------------------------------------------- 
+
+# Returns a string text for the Locale Id codes.
+# NOTE: These codes are based on the Microsoft Locale Id codes.
 def parse_location_id(val):
-    if val is "1033":
-        return "En"
-    elif val is "1031":
-        return "De"
+    if val == "1033" or val == "3081" or val == "2057":
+        return "EN"
+    elif val == "1031" or val == "2055":
+        return "DE"
+    #elif val == "1036" or val == "3084":
+    #    return "Fr"
+    #elif val == "2052" or val == "3076":
+    #    return "Zh"
+    #elif val == "2052" or val == "3076":
+    #    return "Zh"
+    #elif val == "1041":
+    #    return "Jp"
+    # 1041 -> Dutch
+    # 1040 -> Italian
+    # 1027 -> Catalan
+    # 1044 or 2068 -> Norwegian
+    # 2070 -> Portuguese
+    # 1053 -> Swedish
+    # 1034 -> Spanish
+    # 1049 -> Russian
     else:
         return "Unknown"
 
 # parser functions ----------------------------------------------------------- 
-def parser_top_level(file_name):
+def parser_top_level(file_name, devices):
     import xml.etree.ElementTree as ET
     tree = ET.parse(file_name)
     root = tree.getroot()
-    devices = []
     # `Device` (Optional 0..inf)
     for device in root.iter('Device'):
         dev = Device()
@@ -51,45 +83,59 @@ def parser_top_level(file_name):
         #     Device identity incl. name, product code, revision no
         typ = device.find("Type")
         dev.typ = typ.text
-        print "ProductType =", typ.text
-        for item in typ.attrib.items():
-            print item[0], "=", item[1]
+        #     Vendor Specific product code
+        dev.product_code = typ.get("ProductCode", "")
+        #     Vendor Specific revision number
+        dev.revision_no = typ.get("RevisionNo", "")
+        #     All devies with the same combo of `ProductCode` && `RevisionNo`
+        #     should write a serial number to `SerialNo`
+        dev.serial_no = typ.get("SerialNo", "")
+        #     Specifies if the product code should be equal to the eeprom value
+        #     (default: "EQ"), or if it is not checked ("NONE")
+        dev.check_product_cod = typ.get("CheckProductCode", "EQ")
+        # NOTE: Other `Type` values are currently ignored
         # `HideType` (Optional 0..inf)
         #     Contains revision numbers of devices which should not be 
         #     displayed in configuration tools...
+        # NOTE: values `ProductCode` and `ProductRevision` are ignored
         for typ in device.findall("HideType"):
-            dev.hide_type.append(typ.attrib.get("RevisionNo"))
+            dev.hide_type.append(typ.attrib.get("RevisionNo", ""))
         # `AlternativeType` (Optional 0..inf) (Vendor Specific)
+            # `ProductCode` (Optional) (future use)
+            # `RevisionNo`  (Optional) (future use)
         # `SubDevice` (Optional 0..inf)
         #     Used to display EtherCAT slaves built from more than one EtherCAT
-        #     Slave Controller. Contains `ProductCode` and `RevisionNo` of the
-        #     `SubDevice`'s
+        #     Slave Controller. 
+            # `ProductCode` (Optional)
+            # `RevisionNo` (Optional)
+            # `PreviousDevice` (Optional)
+            # `PreviousPortNo` (Optional)
         # `Name` (Mandatory 1..inf)
         #     Detailed name of the device
         for name in device.findall("Name"):
             lc_id_val = name.get("LcId", "")
             lc_id = parse_location_id(lc_id_val)
-            print "Name" + lc_id + " =", name.text
+            dev.name.append((lc_id, name.text))
         # `Comment` (Optional 0..inf)
         # `URL` (Optional 0..inf)
         #    Url pointing to the vendor's homepage where the ESI may be downloaded
         for url in device.findall("URL"):
             lc_id_val = url.get("LcId", "")
             lc_id = parse_location_id(lc_id_val)
-            print "Url" + lc_id + " =", url.text
+            dev.url.append((lc_id, url.text))
         # `Info` (Optional 0..1)
         #    Additional information about the device
-        info = device.find("Info")
-            # `Mailbox`
-                # `Timeout`
-                    # `RequestTimeout`
-        mbox_request_timeout = info.find("./Mailbox/Timeout/RequestTimeout")
-        if mbox_request_timeout is not None:
-            print "MailboxRequestTimeout =", mbox_request_timeout.text
-                    # `ResponseTimeout`
-        mbox_response_timeout = info.find("./Mailbox/Timeout/ResponseTimeout")
-        if mbox_response_timeout is not None:
-            print "MailboxResponseTimeout =", mbox_response_timeout.text
+        #info = device.find("Info")
+        #    # `Mailbox`
+        #        # `Timeout`
+        #            # `RequestTimeout`
+        #mbox_request_timeout = info.find("./Mailbox/Timeout/RequestTimeout")
+        #if mbox_request_timeout is not None:
+        #    print "MailboxRequestTimeout =", mbox_request_timeout.text
+        #            # `ResponseTimeout`
+        #mbox_response_timeout = info.find("./Mailbox/Timeout/ResponseTimeout")
+        #if mbox_response_timeout is not None:
+        #    print "MailboxResponseTimeout =", mbox_response_timeout.text
             # `Electrical`
             # `VendorSpecific`
             # `StateMachine`
@@ -101,8 +147,7 @@ def parser_top_level(file_name):
         # `GroupType` (Mandatory 1)
         #     Reference to a group which this element should be assigned to.
         #     The reference is defined in the element `Groups`.
-        group_type = device.find("GroupType")
-        print "GroupType =", group_type.text
+        dev.group_type = device.find("GroupType").text
         # `Profile` (Optional 0..inf)
         #     Description of the used profile and object dictionary including
         #     the data type definitions.
@@ -148,13 +193,18 @@ def parser_top_level(file_name):
                 # `TextId`
                 # `MessageText`
         # `Fmmu` (Optional 0..inf)
-        #     Definition of the FMMU usage.
+        #     Assigns FMMU to Sync-Manager; Definition of the FMMU usage.
         #     Allowed values:
         #         'Outputs'   -> used for RxPdo
         #         'Inputs'    -> used for TxPdo
         #         'MBoxState' -> used to poll the input Mailbox State (0x080D.0)
+        # NOTE: Mandatory if more than one FMMU for the same direction is used
+        #       to map data to non-constructive memory areas.
+        # NOTE: Sm count starts at 0
         for fmmu in device.findall("Fmmu"):
-            print "FmmuTypeAvailable =", fmmu.text
+            _fmmu = Fmmu()
+            _fmmu.usage = fmmu.text
+            dev.fmmu.append(_fmmu)
         # `Sm` (Optional 0..inf)
         #     Description of the Sync-Manager including start address and
         #     direction of transmission.
@@ -167,20 +217,42 @@ def parser_top_level(file_name):
         #     `SyncManager1` and so on. If more than one Sync-Manager of the
         #     same direction and buffer mode are used the attribute Pdo@Su is
         #     mandatory.
-        for sm in device.findall("Sm"):
-            print "SmTypeAvailable =", sm.text
-            for item in sm.items():
-                print " |-", item[0], "=", item[1]
+        for sman in device.findall("Sm"):
+            sm = Sm()
+            dev.sm.append(sm)
+            sm.typ = sman.text
+            sm.min_size = sman.get("MinSize", "")
+            sm.max_size = sman.get("MaxSize", "")
+            # NOTE: Mandatory for Mailbox Sync-Manager
+            #     Process Data Sync-Manager default length is based on the
+            #     default PDO assignment in the Rx/Tx-Pdo entries.
+            sm.default_size = sman.get("DefaultSize", "")
+            # NOTE: If a Sync-Manager is configured for 3-buffer mode the
+            #       occupied memory is 3x the length and should be considered
+            #       in the calculation of the following Sync-Manager Address.
+            sm.start_address = sman.get("StartAddress", "")
+            sm.control_byte = sman.get("ControlByte", "")
+            sm.enable = sman.get("Enable", "")
+            #     if '1' then master should enable the Sync-Manager only in the
+            #     operational state; if '0' the State machine is handled by host
+            #     controller.
+            # NOTE: True for devices with a digital I/O interface
+            sm.op_only = sman.get("OpOnly", "")
         # `Su` (Optional 0..inf) (Perhaps mandatory, see above)
         #     Defines a timing context by defining different datagrams, possibly
         #     in different frames, which are identified by this string.
+            # `SeparateSu` (Optional)
+            # `SeparateFrame` (Optional)
+            # `DependOnInputState` (Optional)
+            # `FrameRepeatSupport` (Optional)
         # `RxPdo` (Optional 0..inf)
         #     Description of the output process data.
         for rxp in device.findall("RxPdo"):
-            print "RxPdo"
             rx = RxPdo()
             rx.fixed = rxp.get("Fixed", "0")
             rx.sm = rxp.get("Sm", "")
+            # NOTE: Skipping other RxPdo attributes
+            # NOTE: RxPdo area : 0x1600 - 0x17FF
             rxp_index = rxp.find("Index")
             rxp_name = rxp.find("Name")
             rxp_exclude = rxp.find("Exclude")
@@ -221,10 +293,14 @@ def parser_top_level(file_name):
         # `TxPdo` (Optional 0..inf)
         #     Description of the input process data
         for txp in device.findall("TxPdo"):
-            print "TxPdo"
             tx = TxPdo()
-            for item in txp.items():
-                print " |-", item[0], "=", item[1]
+            #    '0' -> Pdo Mapping can be changed
+            #    '1' -> Pdo not configurable
+            tx.fixed = txp.get("Fixed", "0")
+            #    Default Sm for this PDO (included by default)
+            tx.sm = txp.get("Sm", "")
+            # NOTE: Skipping other RxPdo attributes
+            # NOTE: TxPdo area : 0x1A00 - 0x1BFF
             txp_index = txp.find("Index")
             txp_name = txp.find("Name")
             txp_exclude = txp.find("Exclude")
@@ -266,29 +342,42 @@ def parser_top_level(file_name):
         #     Description of available mailbox protocols
         mailbox = device.find("Mailbox")
         if mailbox is not None:
+            # NOTE: if the object isn't present then it's not available in
+            #       the slave device
             dev.mailbox = Mailbox()
-            # `CoE`
-            mbox_coe = mailbox.find("CoE")
-            if mbox_coe is not None:
-                dev.mailbox.coe = mbox_coe.attrib
-            # `FoE`
-            mbox_foe = mailbox.find("FoE")
-            if mbox_foe is not None:
-                dev.mailbox.foe = mbox_foe.attrib
             # `AoE`
             mbox_aoe = mailbox.find("AoE")
             if mbox_aoe is not None:
                 dev.mailbox.aoe = mbox_aoe.attrib
+            # `CoE`
+            mbox_coe = mailbox.find("CoE")
+            if mbox_coe is not None:
+                dev.mailbox.coe = mbox_coe.attrib
+            # `EoE`
+            mbox_eoe = mailbox.find("EoE")
+            if mbox_eoe is not None:
+                dev.mailbox.eoe = mbox_eoe.attrib
+            # `FoE`
+            mbox_foe = mailbox.find("FoE")
+            if mbox_foe is not None:
+                dev.mailbox.foe = mbox_foe.attrib
+            # `SoE`
+            mbox_soe = mailbox.find("SoE")
+            if mbox_soe is not None:
+                dev.mailbox.soe = mbox_soe.attrib
+            # `VoE`
+            mbox_voe = mailbox.find("VoE")
+            if mbox_voe is not None:
+                dev.mailbox.voe = mbox_voe.attrib
         # `Dc` (Optional 0..1)
         #     Description of the following synchronization modes if available:
         #     {Freerun | Synchronous w/ Sm Event | Distributed Clocks}
         dc = device.find("Dc")
         if dc is not None:
             dev.dc = Dc()
-            # `OpMode`
+            # `OpMode` (Optional 0..inf)
             for item in dc.findall("OpMode"):
                 opmode = DcOpMode()
-                print "Dc -> OpMode"
                 dc_name = item.find("Name")
                 dc_desc = item.find("Desc")
                 dc_assign = item.find("AssignActivate")
@@ -318,16 +407,28 @@ def parser_top_level(file_name):
                 if dc_sft_snc1 is not None:
                     opmode.shift_time_sync_1 = dc_sft_snc1.text
                 dev.dc.op_mode.append(opmode)
-        # `Slots`
+        # `Slots` (Optional 0..??)
         #     Defines the combination of possibilities of the modules which may
         #     be used if the device supports Modular Device Profiles (ETG.5001)
         #     The modules are defined in the `Modules` element
+        # `ESC` (Optional 0..??)
+        #     Initialization values of the EtherCAT Slave Controller Watchdog 
+        #     registers
         # `Eeprom` (Optional 0..1)
+            # `AssignToPdi` : '0' -> access assigned to PDI during Init -> PreOp
+            #               : '1' -> Eeprom PDI access in all states except Init
+        # NOTE: Either `Eeprom@Data` is present or the other three are present.
+        # NOTE: EEPROM data format is little-endian
         if device.find("Eeprom") is not None:
             dev.eeprom = Eeprom()
+            eeprom_data = device.find("./Eeprom/Data")
             eeprom_bytesize = device.find("./Eeprom/ByteSize")
             eeprom_configdata = device.find("./Eeprom/ConfigData")
             eeprom_bootstrap = device.find("./Eeprom/BootStrap")
+            # `Data`
+            #     Complete EEPROM data; length is implicit
+            if eeprom_data is not None:
+                dev.eeprom.data = eeprom_data.text
             # `ByteSize`
             if eeprom_bytesize is not None:
                 dev.eeprom.byte_size = eeprom_bytesize.text
@@ -339,13 +440,19 @@ def parser_top_level(file_name):
                 dev.eeprom.bootstrap = eeprom_bootstrap.text
         #NOTE: There are three possibilities for images and if there is an
         #      image then only one of these can be chosen
+        #     The hex binary data of a BMP file with dimensions of 16x14 pixels
+        #     which may be shown by config tool.
+        #NOTE: The color 0xFF00FF is transparent.
             # `Image16x14` (Optional 0..1)
             # `ImageFile16x14` (Optional 0..1)
             # `ImageData16x14` (Optional 0..1)
+        # `VendorSpecific`
+        #     Vendor Specific elements of `DeviceType`
         # Add our device to the list of devices
         devices.append(dev)
     print len(devices)
 
 if __name__ == "__main__":
-    #parser_top_level("./file.xml")
-    parser_top_level("./file1.xml")
+    devices = []
+    parser_top_level("./file.xml", devices)
+    parser_top_level("./file1.xml", devices)
