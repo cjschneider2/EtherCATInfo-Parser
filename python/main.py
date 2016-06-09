@@ -19,12 +19,42 @@ header_footer = """
 
 header_device_struct_defn = """
 struct device {
-    char[] type,
-    u32    vendor_id,
-    u32    product_code,
-    u32    revision_no
+    size_t   db_index;
+    char[]   type;
+    uint32_t vendor_id;
+    uint32_t product_code;
+    uint32_t revision_no;
+    struct pdo_entry_info pdo_entry_info[];
 };
 """
+
+header_igh_pdo_entry_info = """
+struct pdo_entry_info {
+    uint16_t index;
+    uint8_t  subindex;
+    uint8_t  bit_length;
+    char     name[];
+}
+"""
+
+header_igh_pdo_entry_reg = """
+// NOTE: Conforms to IGH-ECM implementation
+struct pdo_entry_reg {
+    uint16_t alias;        /* Slave alias address. */
+    uint16_t position;     /* Slave position. */
+    uint32_t vendor_id;    /* Slave vendor ID. */
+    uint32_t product_code; /* Slave product code. */
+    uint16_t index;        /* PDO entry index. */
+    uint8_t subindex;      /* PDO entry subindex. */
+    unsigned int *offset;  /* Pointer to a variable to store the PDO entry's
+                              (byte-)offset in the process data. */
+    unsigned int *bit_position; /* Pointer to a variable to store a bit
+                                   position (0-7) within the \a offset. Can be
+                                   NULL, in which case an error is raised if the
+                                   PDO entry does not byte-align. */
+};
+"""
+
 
 # Class stubs for programmatic object creation -------------------------------
 class Device(object):
@@ -66,15 +96,31 @@ class Sm (object):
 
 class TxPdo(object):
     def __init__(self):
+        self.fixed = ""
+        self.sm = ""
+        self.index = ""
+        self.name = ""
+        self.exclude = ""
         self.entry = []
     pass
 
 class RxPdo(object):
     def __init__(self):
+        self.fixed = ""
+        self.sm = ""
+        self.index = ""
+        self.name = ""
+        self.exclude = ""
         self.entry = []
     pass
 
 class PdoEntry(object):
+    def __init__(self):
+        self.index = ""
+        self.sub_index = ""
+        self.bit_len = ""
+        self.name = ""
+        self.data_type = ""
     pass
 
 class Mailbox(object):
@@ -311,7 +357,7 @@ def parser_top_level(file_name, devices):
             if rxp_exclude is not None:
                 rx.exclude = rxp_exclude.text
             # `Entry`
-            for item in txp.findall("Entry"):
+            for item in rxp.findall("Entry"):
                 ent = PdoEntry()
                 ent_idx = item.find("Index")
                 ent_subidx = item.find("SubIndex")
@@ -335,7 +381,7 @@ def parser_top_level(file_name, devices):
                     ent.data_type = ent_datatype.text
                 rx.entry.append(ent)
             dev.rx_pdo.append(rx)
-        # `TxPdo` (Optional 0..inf)
+
         #     Description of the input process data
         for txp in device.findall("TxPdo"):
             tx = TxPdo()
@@ -446,7 +492,7 @@ def parser_top_level(file_name, devices):
                 if dc_sft_snc0 is not None:
                     opmode.shift_time_sync_0 = dc_sft_snc0.text
                 # `CycleTimeSync1`
-                if dc_cyc_syn0 is not None:
+                if dc_cyc_syn1 is not None:
                     opmode.cycle_time_sync_1 = dc_cyc_syn1.text
                 # `ShiftTimeSync1`
                 if dc_sft_snc1 is not None:
@@ -501,25 +547,63 @@ def parser_top_level(file_name, devices):
 # This is a test function to print out the c_file to the console for
 # development. This may also be used for piping into an output file.
 def print_c_header(devices):
+    # actual lines we're storing. We need to save them before hand to make sure
+    # that the Id we assign to the device is consistent throughout the structs.
+    device_lines = []
+    fmmu_lines = []
+    sm_lines = []
+    rx_lines = []
+    tx_lines = []
+    pdo_entry_info = []
     print header_header
    #print header_includes
-
     # TODO: Separate out into it's own function
+    print header_igh_pdo_entry_info
     print header_device_struct_defn
     print """ struct device devices = {"""
     bk_vendor_id = "0x00000002"
+    idx = 0
     for dev in devices:
         pc  = parse_hex(dev.product_code)
         rev = parse_hex(dev.revision_no)
-        print "    {{ {}, {}, {}, {} }},".format(dev.typ, bk_vendor_id, pc, rev)
+        pdos = []
+        # TxPdo entries
+        for pdo in dev.tx_pdo:
+            for entry in pdo.entry:
+                # skip 'empty' addresses
+                if entry.index == "#x0":
+                    continue
+                pdos.append('{{ {}, {}, {}, "{}" }}'.format(
+                    parse_hex(entry.index), entry.sub_index, entry.bit_len, entry.name))
+        # RxPdo entries
+        for pdo in dev.rx_pdo:
+            for entry in pdo.entry:
+                # skip 'empty' addresses
+                if entry.index == "#x0":
+                    continue
+                pdos.append('{{ {}, {}, {}, "{}" }}'.format(
+                    parse_hex(entry.index), entry.sub_index, entry.bit_len, entry.name))
+        # join the pdos into one string
+        _pdos = ",\n        ".join([pdo for pdo in pdos])
+        device_lines.append('{{ {}, "{}", {}, {}, {}, {{\n        {} }} }},'.format(
+            idx, dev.typ, bk_vendor_id, pc, rev, _pdos))
+        idx += 1
+    for line in device_lines:
+        print "    " + line
     print """    {}\n};"""
     print header_footer
 
 # Main Functions ------------------------------------------------------------- 
 
 if __name__ == "__main__":
+    import glob
+    # find our files 
+    #file_paths = glob.glob("./Beckhoff_EtherCAT_XML/*.xml")
     devices = []
-    parser_top_level("./file.xml", devices)
-    #parser_top_level("./file1.xml", devices)
+    #parser_top_level("./file.xml", devices)
+    parser_top_level("./file1.xml", devices)
     print_c_header(devices)
-
+    #for path in file_paths:
+    #    parser_top_level(path, devices)
+    
+    print len(devices)
