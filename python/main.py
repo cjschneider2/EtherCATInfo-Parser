@@ -9,6 +9,8 @@ header_header = """
  */
 
 #include <stdint.h>
+
+#define MAX_STRING_LEN 256
 """
 
 header_footer = """
@@ -21,22 +23,34 @@ struct device {
     uint32_t vendor_id;
     uint32_t product_code;
     uint32_t revision_no;
-    char type[];
+    char type[MAX_STRING_LEN];
 };
 """
 
 header_pdo_entry_info = """
 struct pdo_entry_info {
+    uint32_t db_index;
     uint16_t index;
     uint8_t  subindex;
     uint8_t  bit_length;
-    char name[];
+    char name[MAX_STRING_LEN];
 };
 """
 
 test_c_main_txt = """
-#include "./_test.h"
+#include <stdio.h>
+#include <assert.h>
+#include "_test.h"
 int main () {
+    size_t dev_count = sizeof(devices)/sizeof(struct device);
+    //size_t pdo_count = sizeof(pdo_entries)/sizeof(struct pdo_entry_info);
+    // These are the actual counts of the objects minus the blank object
+    // at the end and the 1 for indexing
+    dev_count -= 2;
+
+    struct device *dev = devices;
+    for (unsigned int idx = 0; idx < dev_count; idx++, dev++) {}
+    assert(dev_count == dev->db_index);
     return 0;
 }
 """
@@ -546,8 +560,11 @@ def gen_c_header(devices):
     for dev in devices:
         pc  = parse_hex(dev.product_code)
         rev = parse_hex(dev.revision_no)
-
         # -- DEVICE ENTRIES
+        # if the device doesn't have a product code / revision number we'll
+        # skip it as these won't be able to be read from the driver anyways
+        if pc == "":
+            continue
         # create the actual device data entry
         fstr = '{{ {}, {}, {}, {}, "{}" }},\n'
         device_lines.append(fstr.format(idx, bk_vendor_id, pc, rev, dev.typ))
@@ -557,22 +574,19 @@ def gen_c_header(devices):
         pdos = []
         # TxPdo entries
         for pdo in dev.tx_pdo:
-            for entry in pdo.entry:
-                # skip 'empty' addresses
-                if entry.index == "#x0" or entry.index == "0":
-                    continue
-                pdos.append('{{ {}, {}, {}, "{}" }},'.format(
-                    parse_hex(entry.index), entry.sub_index, entry.bit_len, entry.name))
+            pdos.append(pdo)
         # RxPdo entries
         for pdo in dev.rx_pdo:
+            pdos.append(pdo)
+        # create the output
+        for pdo in pdos:
             for entry in pdo.entry:
-                # skip 'empty' addresses
-                if entry.index == "#x0" or entry.index == "0":
+                # skip 'empty' addresses or indexes
+                if entry.index == "#x0" or entry.index == "0" or entry.sub_index == "":
                     continue
-                pdos.append('{{ {}, {}, {}, "{}" }},'.format(
-                    parse_hex(entry.index), entry.sub_index, entry.bit_len, entry.name))
-        # join the pdos into one string
-        #_pdos = "\n        ".join([pdo for pdo in pdos])
+                pdo_entry_info.append('{{ {}, {}, {}, {}, "{}" }},'.format(
+                    str(idx), parse_hex(entry.index), parse_hex(entry.sub_index),
+                    entry.bit_len, entry.name))
         # -- /PDO ENTRIES
         #
         idx += 1
@@ -589,9 +603,9 @@ def gen_c_header(devices):
     output_lines.append("""    {}\n};\n""")
     # PDOs
     output_lines.append("""struct pdo_entry_info pdo_entries[] = {\n""")
-    for line in pdos:
-        output_lines.append("    " + line)
-    output_lines.append("""    {}\n};\n""")
+    for line in pdo_entry_info:
+        output_lines.append("\n    " + line)
+    output_lines.append("""\n    {}\n};\n""")
     # FOOTER
     output_lines.append(header_footer)
     return output_lines
@@ -611,15 +625,22 @@ def test_header(out_text):
     # compare the output
     return
 
+def test_program():
+    from subprocess import check_output
+    # Run the complier & read the output
+    output = check_output(["gcc", "-std=c99","-Wall", "_test.c"])
+    # compare the output
+    return
+
 # Main Functions ------------------------------------------------------------- 
 
-def gen_all_file():
+def gen_all_file(devices):
     import glob
     # find our files
     file_paths = glob.glob("./Beckhoff_EtherCAT_XML/*.xml")
     # run the parser
     for path in file_paths:
-        parse_top_level(path, devices)
+        parser_top_level(path, devices)
     # run the generator
     out = gen_c_header(devices)
     return out
@@ -634,10 +655,12 @@ def gen_test_file(devices):
 if __name__ == "__main__":
     devices = []
     #  -- Generation functions: choose _one_
-    #output = gen_all_file(devices)
-    output = gen_test_file(devices)
+    output = gen_all_file(devices)
+    #output = gen_test_file(devices)
+    #output = []
     #  --
     # print out the number of devices found
     print "Generated configuration for", len(devices), "devices"
     # Test the file to see if it can compile
     test_header(output)
+    #test_program()
