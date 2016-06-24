@@ -18,7 +18,7 @@ header_footer = """
 """
 
 header_device_struct_defn = """
-struct device {
+struct ec_device {
     uint32_t db_index;
     uint32_t vendor_id;
     uint32_t product_code;
@@ -28,13 +28,26 @@ struct device {
 """
 
 header_pdo_entry_info = """
+typedef enum {
+    TX,
+    RX
+} pdo_dir;
+
 struct pdo_entry_info {
     uint32_t db_index;
     uint16_t index;
     uint8_t  subindex;
     uint8_t  bit_length;
-    char name[MAX_STRING_LEN];
+    pdo_dir  direction;
+    uint8_t  sync_manager;
+    size_t   name[MAX_STRING_LEN];
 };
+
+struct pdo_string_entry {
+    size_t index;
+    char   string[MAX_STRING_LEN];
+};
+
 """
 
 test_c_main_txt = """
@@ -42,13 +55,13 @@ test_c_main_txt = """
 #include <assert.h>
 #include "_test.h"
 int main () {
-    size_t dev_count = sizeof(devices)/sizeof(struct device);
+    size_t dev_count = sizeof(ec_devices)/sizeof(struct ec_device);
     //size_t pdo_count = sizeof(pdo_entries)/sizeof(struct pdo_entry_info);
     // These are the actual counts of the objects minus the blank object
     // at the end and the 1 for indexing
     dev_count -= 2;
 
-    struct device *dev = devices;
+    struct ec_device *dev = ec_devices;
     for (unsigned int idx = 0; idx < dev_count; idx++, dev++) {}
     assert(dev_count == dev->db_index);
     return 0;
@@ -340,7 +353,7 @@ def parser_top_level(file_name, devices):
         for rxp in device.findall("RxPdo"):
             rx = RxPdo()
             rx.fixed = rxp.get("Fixed", "0")
-            rx.sm = rxp.get("Sm", "")
+            rx.sm = rxp.get("Sm", "-1")
             # NOTE: Skipping other RxPdo attributes
             # NOTE: RxPdo area : 0x1600 - 0x17FF
             rxp_index = rxp.find("Index")
@@ -378,6 +391,8 @@ def parser_top_level(file_name, devices):
                 # `DataType`
                 if ent_datatype is not None:
                     ent.data_type = ent_datatype.text
+                ent.sm = rx.sm
+                ent.direction = "RX"
                 rx.entry.append(ent)
             dev.rx_pdo.append(rx)
 
@@ -388,7 +403,7 @@ def parser_top_level(file_name, devices):
             #    '1' -> Pdo not configurable
             tx.fixed = txp.get("Fixed", "0")
             #    Default Sm for this PDO (included by default)
-            tx.sm = txp.get("Sm", "")
+            tx.sm = txp.get("Sm", "-1")
             # NOTE: Skipping other RxPdo attributes
             # NOTE: TxPdo area : 0x1A00 - 0x1BFF
             txp_index = txp.find("Index")
@@ -426,6 +441,8 @@ def parser_top_level(file_name, devices):
                 # `DataType`
                 if ent_datatype is not None:
                     ent.data_type = ent_datatype.text
+                ent.sm = tx.sm
+                ent.direction = "TX"
                 tx.entry.append(ent)
             dev.tx_pdo.append(tx)
         # `Mailbox` (Optional 0..1)
@@ -548,7 +565,7 @@ def parser_top_level(file_name, devices):
 def gen_c_header(devices):
     output_lines = []
     # actual lines we're storing. We need to save them before hand to make sure
-    # that the Id we assign to the device is consistent throughout the structs.
+    # that the Id we assign to the device is consistent throughout the struts.
     bk_vendor_id = "0x00000002" # TODO: This should be read from the file
     device_lines = []
     fmmu_lines = []
@@ -556,6 +573,10 @@ def gen_c_header(devices):
     rx_lines = []
     tx_lines = []
     pdo_entry_info = []
+    pdo_string_map = dict()
+    pdo_string_lst = []
+    pdo_string_idx = 0
+    entry_str_idx = 0
     idx = 0
     for dev in devices:
         pc  = parse_hex(dev.product_code)
@@ -584,12 +605,35 @@ def gen_c_header(devices):
                 # skip 'empty' addresses or indexes
                 if entry.index == "#x0" or entry.index == "0" or entry.sub_index == "":
                     continue
-                pdo_entry_info.append('{{ {}, {}, {}, {}, "{}" }},'.format(
-                    str(idx), parse_hex(entry.index), parse_hex(entry.sub_index),
-                    entry.bit_len, entry.name))
+                # skip entries without a defined Sync-Manager
+                if entry.sm == "-1":
+                    continue
+                # calculate the string db entry
+                if entry.name not in pdo_string_map:
+                    pdo_string_map[entry.name] = pdo_string_idx;
+                    entry_str_idx = pdo_string_idx
+                    pdo_string_idx = pdo_string_idx + 1
+                else:
+                    entry_str_idx = pdo_string_map[entry.name]
+                # add the pdo entry to the list
+                pdo_entry_info.append('{{ {}, {}, {}, {}, {}, {}, {} }},'.format(
+                    str(idx),
+                    parse_hex(entry.index),
+                    parse_hex(entry.sub_index),
+                    entry.bit_len,
+                    entry.direction,
+                    entry.sm,
+                    entry_str_idx))
         # -- /PDO ENTRIES
         #
         idx += 1
+    # Collect the string db entries
+    string_db = dict()
+    for (k, v) in pdo_string_map.iteritems():
+        if not string_db.has_key(v):
+            string_db[v] = k
+    for (k, v) in string_db.iteritems():
+        pdo_string_lst.append('{{ {}, "{}" }},'.format(k, v))
     # -- WRITE OUT DATA
     # HEADER
     output_lines.append(header_header)
@@ -597,13 +641,18 @@ def gen_c_header(devices):
     output_lines.append(header_device_struct_defn)
     output_lines.append(header_pdo_entry_info)
     # DEVICES
-    output_lines.append("""struct device devices[] = {\n""")
+    output_lines.append("""struct ec_device ec_devices[] = {\n""")
     for line in device_lines:
         output_lines.append("    " + line)
     output_lines.append("""    {}\n};\n""")
     # PDOs
     output_lines.append("""struct pdo_entry_info pdo_entries[] = {\n""")
     for line in pdo_entry_info:
+        output_lines.append("\n    " + line)
+    output_lines.append("""\n    {}\n};\n""")
+    # PDO -> String db
+    output_lines.append("""struct pdo_string_entry pdo_string_db[] = {\n""")
+    for line in pdo_string_lst:
         output_lines.append("\n    " + line)
     output_lines.append("""\n    {}\n};\n""")
     # FOOTER
@@ -655,8 +704,8 @@ def gen_test_file(devices):
 if __name__ == "__main__":
     devices = []
     #  -- Generation functions: choose _one_
-    output = gen_all_file(devices)
-    #output = gen_test_file(devices)
+    #output = gen_all_file(devices)
+    output = gen_test_file(devices)
     #output = []
     #  --
     # print out the number of devices found
