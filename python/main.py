@@ -50,42 +50,42 @@ typedef enum {
  */
 typedef enum {
 //  TYPE:  (BIT_SIZE): DESCRIPTION
-    BOOL,     /** ( 1): Boolean value ; 0 == False, 1 == True */
-    BIT,      /** ( 1): Bit value ; 0 == False, 1 == True     */
-    BYTE,     /** ( 8): 1 Octet                               */
-    WORD,     /** (16): 2 Octets                              */
-    DWORD,    /** (32): 4 Octets                              */
-    BIT1,     /** ( 1): Bit length value of size 1            */
-    BIT2,     /** ( 2): Bit length value of size 2            */
-    BIT3,     /** ( 3): Bit length value of size 3            */
-    BIT4,     /** ( 4): Bit length value of size 4            */
-    BIT5,     /** ( 5): Bit length value of size 5            */
-    BIT6,     /** ( 6): Bit length value of size 6            */
-    BIT7,     /** ( 7): Bit length value of size 7            */
-    BIT8,     /** ( 8): Bit length value of size 8            */
-    BITARR8,  /** ( 8): Array of 8 bits                       */
-    BITARR16, /** (16): Array of 16 bits                      */
-    BITARR32, /** (32): Array of 32 bits                      */
-    SINT,     /** ( 8): Short Integer                         */
-    INT,      /** (16): Integer                               */
-    INT24,    /** (24): 24 Bit Integer                        */
-    DINT,     /** (32): Double Integer                        */
-    INT40,    /** (40): 40 Bit Integer                        */
-    INT48,    /** (48): 48 Bit Integer                        */
-    INT52,    /** (52): 52 Bit Integer                        */
-    LINT,     /** (64): Long Integer                          */
-    USINT,    /** ( 8): Unsigned Short Integer                */
-    UINT,     /** (16): Unsigned Integer                      */
-    UINT16,   /** (16): Unsigned 16 Bit Integer               */
-    UINT24,   /** (24): Unsigned 24 Bit Integer               */
-    UDINT,    /** (32): Unsigned Double Integer               */
-    UINT40,   /** (40): Unsigned 40 Bit Integer               */
-    UINT48,   /** (48): Unsigned 48 Bit Integer               */
-    UINT52,   /** (52): Unsigned 52 Bit Integer               */
-    ULINT,    /** (64): Unsigned Long Integer                 */
-    REAL,     /** (32): Real Number / Floating Point          */
-    LREAL,    /** (64): Real Number / Long Floating Point     */
-    GUID,     /** (128): Global Unique Identifier             */
+    BDT_BOOL,     /** ( 1): Boolean value ; 0 == False, 1 == True */
+    BDT_BIT,      /** ( 1): Bit value ; 0 == False, 1 == True     */
+    BDT_BYTE,     /** ( 8): 1 Octet                               */
+    BDT_WORD,     /** (16): 2 Octets                              */
+    BDT_DWORD,    /** (32): 4 Octets                              */
+    BDT_BIT1,     /** ( 1): Bit length value of size 1            */
+    BDT_BIT2,     /** ( 2): Bit length value of size 2            */
+    BDT_BIT3,     /** ( 3): Bit length value of size 3            */
+    BDT_BIT4,     /** ( 4): Bit length value of size 4            */
+    BDT_BIT5,     /** ( 5): Bit length value of size 5            */
+    BDT_BIT6,     /** ( 6): Bit length value of size 6            */
+    BDT_BIT7,     /** ( 7): Bit length value of size 7            */
+    BDT_BIT8,     /** ( 8): Bit length value of size 8            */
+    BDT_BITARR8,  /** ( 8): Array of 8 bits                       */
+    BDT_BITARR16, /** (16): Array of 16 bits                      */
+    BDT_BITARR32, /** (32): Array of 32 bits                      */
+    BDT_SINT,     /** ( 8): Short Integer                         */
+    BDT_INT,      /** (16): Integer                               */
+    BDT_INT24,    /** (24): 24 Bit Integer                        */
+    BDT_DINT,     /** (32): Double Integer                        */
+    BDT_INT40,    /** (40): 40 Bit Integer                        */
+    BDT_INT48,    /** (48): 48 Bit Integer                        */
+    BDT_INT52,    /** (52): 52 Bit Integer                        */
+    BDT_LINT,     /** (64): Long Integer                          */
+    BDT_USINT,    /** ( 8): Unsigned Short Integer                */
+    BDT_UINT,     /** (16): Unsigned Integer                      */
+    BDT_UINT16,   /** (16): Unsigned 16 Bit Integer               */
+    BDT_UINT24,   /** (24): Unsigned 24 Bit Integer               */
+    BDT_UDINT,    /** (32): Unsigned Double Integer               */
+    BDT_UINT40,   /** (40): Unsigned 40 Bit Integer               */
+    BDT_UINT48,   /** (48): Unsigned 48 Bit Integer               */
+    BDT_UINT52,   /** (52): Unsigned 52 Bit Integer               */
+    BDT_ULINT,    /** (64): Unsigned Long Integer                 */
+    BDT_REAL,     /** (32): Real Number / Floating Point          */
+    BDT_LREAL,    /** (64): Real Number / Long Floating Point     */
+    BDT_GUID,     /** (128): Global Unique Identifier             */
 } base_data_t;
 
 /**
@@ -235,6 +235,12 @@ def parse_location_id(val):
 # and returns a C compatible version  (0x0000)
 def parse_hex(xml_hex):
     return xml_hex.replace('#', '0', 1)
+
+# parses the data type value to add 'BDT_'
+# to the beginning.
+# This was added to help prevent datatype conflicts
+def parse_bdt(bdt_string):
+    return "BDT_{}".format(bdt_string)
 
 # parser functions ----------------------------------------------------------- 
 
@@ -652,7 +658,7 @@ def gen_c_header(devices):
         if pc == "":
             continue
         # create the actual device data entry
-        fstr = '{{ {}, {}, {}, {}, "{}" }},\n'
+        fstr = '{{ {:>4}, {:>10}, {:>10}, {:>10}, "{}" }},\n'
         device_lines.append(fstr.format(idx, bk_vendor_id, pc, rev, dev.typ))
         # -- /DEVICE ENTRIES
 
@@ -681,7 +687,7 @@ def gen_c_header(devices):
                 else:
                     entry_str_idx = pdo_string_map[entry.name]
                 # add the pdo entry to the list
-                pdo_entry_info.append('{{ {}, {}, {}, {}, {}, {}, {}, {} }},'.format(
+                pdo_entry_info.append('{{ {:>4}, {:>6}, {:>2}, {:>3}, {:2}, {:>2}, {:>2}, {} }},'.format(
                     str(idx),
                     parse_hex(entry.index),
                     parse_hex(entry.sub_index),
@@ -689,7 +695,7 @@ def gen_c_header(devices):
                     entry.direction,
                     entry.sm,
                     entry_str_idx,
-                    entry.data_type))
+                    parse_bdt(entry.data_type)))
         # -- /PDO ENTRIES
         #
         idx += 1
