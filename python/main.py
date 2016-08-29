@@ -266,6 +266,8 @@ def parser_top_level(file_name, devices):
     import xml.etree.ElementTree as ET
     tree = ET.parse(file_name)
     root = tree.getroot()
+    # Setting the vendor_id for the devices in this file
+    file_vendor_id = root.find('./Vendor/Id').text
     # `Device` (Optional 0..inf)
     for device in root.iter('Device'):
         dev = Device()
@@ -273,6 +275,8 @@ def parser_top_level(file_name, devices):
         #     Device identity incl. name, product code, revision no
         typ = device.find("Type")
         dev.typ = typ.text
+        #     Vendor Specific vendor Identifier
+        dev.vendor_id = file_vendor_id
         #     Vendor Specific product code
         dev.product_code = typ.get("ProductCode", "")
         #     Vendor Specific revision number
@@ -797,7 +801,7 @@ def test_program():
     # compare the output
     return
 
-# Main Functions ------------------------------------------------------------- 
+# C header generation Functions ---------------------------------------------- 
 
 def gen_all_file(devices):
     import glob
@@ -819,14 +823,104 @@ def gen_test_file(devices):
     _dev = generate_device_list(devices)
     return (_hdr, _dev)
 
-if __name__ == "__main__":
+
+def generate_c_headers():
     devices = []
-    #  -- Generation functions: choose _one_
-    (hdr, devs) = gen_all_file(devices)
-    #(hdr, devs) = gen_test_file(devices)
-    #output = []
-    #  --
+    #(hdr, devs) = gen_all_file(devices)
+    (hdr, devs) = gen_test_file(devices)
     # print out the number of devices found
     print "Generated configuration for", len(devices), "devices"
     # Test the file to see if it can compile
     test_header(hdr, devs)
+
+# Sqlite3 Functions ---------------------------------------------------------- 
+
+def gen_device_list(devices):
+    #parser_top_level("./file.xml", devices)
+    parser_top_level("./file1.xml", devices)
+    return (devices)
+
+def generate_sqlite3_db():
+    import sqlite3
+    # Debug Info
+    print "Using sqlite3 py-module version:", sqlite3.version
+    print "Using sqlite3 c-library version:", sqlite3.sqlite_version
+    # Gen device list
+    print "Generating list of devices"
+    devices = []
+    gen_device_list(devices)
+    # Generate the SQLite DB
+    #con = sqlite3.connect(":memory:") # In memory db for testing
+    con = sqlite3.connect("ethercat_dev.sqlite") # DB-File
+    cur = con.cursor()
+    # Drop the tables ( if they already exist )
+    cur.execute("drop table if exists devices")
+    cur.execute("drop table if exists pdos")
+    # Create the new tables
+    print "Creating database tables"
+    dev_id = 1
+    pdo_id = 1
+    cur.execute("create table devices (dev_id INTEGER PRIMARY KEY, vendor_id INTEGER, product_code INTEGER, revision INTEGER, type)")
+    cur.execute("create table pdos (pdo_id INTEGER PRIMARY KEY, db_idx INTEGER, pdo_idx INTEGER, pdo_subidx INTEGER, bit_len INTEGER, pdo_dir, sync_man INTEGER, name, data_type)")
+    for dev in devices:
+        # Here, we need to make sure that the numbers are in their correct
+        # formats before we insert them into the database
+        v_id = int(parse_hex(dev.vendor_id), 16)
+        p_code = int(parse_hex(dev.product_code), 16)
+        r_no = int(parse_hex(dev.revision_no), 16)
+        # Add device info into device table
+        print "Adding Device:", dev.name[0][1]
+        cur.execute("insert into devices values (?, ?, ?, ?, ?)",
+                    (dev_id,
+                     v_id,
+                     p_code,
+                     r_no,
+                     dev.typ))
+        # Add pdos to the pdo table
+        print "Adding PDOs for device:"
+        pdos = []
+        # TxPdo entries
+        for pdo in dev.tx_pdo:
+            pdos.append(pdo)
+        # RxPdo entries
+        for pdo in dev.rx_pdo:
+            pdos.append(pdo)
+        # create the output
+        for pdo in pdos:
+            for entry in pdo.entry:
+                # skip 'empty' addresses or indexes
+                if entry.index == "#x0" or entry.index == "0" or entry.sub_index == "":
+                    continue
+                # skip entries without a defined Sync-Manager
+                if entry.sm == "-1":
+                    continue
+                # add the pdo entry to the list
+                print "\t", entry.name
+                cur.execute("insert into pdos values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (pdo_id,
+                             dev_id,
+                             int(parse_hex(entry.index), 16),
+                             int(parse_hex(entry.sub_index), 16),
+                             entry.bit_len,
+                             entry.direction,
+                             int(entry.sm),
+                             entry.name,
+                             parse_bdt(entry.data_type)))
+                pdo_id += 1
+        # increment our db-index after we're done with the current device
+        dev_id += 1
+    print "\n", "Selecting inserted data"
+    cur.execute("select * from devices")
+    rows = cur.fetchall()
+    print "Number of Entries Found:", len(rows)
+    con.commit()
+    con.close()
+
+# Main Function -------------------------------------------------------------- 
+
+if __name__ == "__main__":
+    # -- Generation functions: choose _one_
+    # - C headers
+    #generate_c_headers()
+    # - sqlite3
+    generate_sqlite3_db()
