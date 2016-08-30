@@ -835,9 +835,21 @@ def generate_c_headers():
 
 # Sqlite3 Functions ---------------------------------------------------------- 
 
+def gen_all_device_list(devices):
+    import glob
+    # find our files
+    file_paths = glob.glob("./Beckhoff_EtherCAT_XML/*.xml")
+    # run the parser
+    for path in file_paths:
+        parser_top_level(path, devices)
+    return (devices)
+
 def gen_device_list(devices):
+    # Generate for a specific file
     #parser_top_level("./file.xml", devices)
-    parser_top_level("./file1.xml", devices)
+    #parser_top_level("./file1.xml", devices)
+    # Generate for all devices
+    gen_all_device_list(devices)
     return (devices)
 
 def generate_sqlite3_db():
@@ -865,11 +877,29 @@ def generate_sqlite3_db():
     for dev in devices:
         # Here, we need to make sure that the numbers are in their correct
         # formats before we insert them into the database
-        v_id = int(parse_hex(dev.vendor_id), 16)
-        p_code = int(parse_hex(dev.product_code), 16)
-        r_no = int(parse_hex(dev.revision_no), 16)
+        _hex = parse_hex(dev.vendor_id);
+        if (_hex == ''):
+            continue
+            print "ERR: dev.vendor_id invalid:", dev.typ
+            _hex = '0x0'
+        v_id = int(_hex, 16)
+
+        _hex = parse_hex(dev.product_code);
+        if (_hex == ''):
+            continue
+            print "ERR: dev.product_code invalid:", dev.typ
+            _hex = '0x0'
+        p_code = int(_hex, 16)
+
+        _hex = parse_hex(dev.revision_no);
+        if (_hex == ''):
+            continue
+            print "ERR: dev.revision_no invalid:", dev.typ
+            _hex = '0x0'
+        r_no = int(_hex, 16)
+
         # Add device info into device table
-        print "Adding Device:", dev.name[0][1]
+        #print "Adding Device:", dev.name[0][1]
         cur.execute("insert into devices values (?, ?, ?, ?, ?)",
                     (dev_id,
                      v_id,
@@ -877,7 +907,7 @@ def generate_sqlite3_db():
                      r_no,
                      dev.typ))
         # Add pdos to the pdo table
-        print "Adding PDOs for device:"
+        #print "Adding PDOs for device:"
         pdos = []
         # TxPdo entries
         for pdo in dev.tx_pdo:
@@ -895,7 +925,7 @@ def generate_sqlite3_db():
                 if entry.sm == "-1":
                     continue
                 # add the pdo entry to the list
-                print "\t", entry.name
+                #print "\t", entry.name
                 cur.execute("insert into pdos values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             (pdo_id,
                              dev_id,
