@@ -1,0 +1,2 @@
+class Sm (object):
+    pass

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include <stdbool.h>
 
 #include "./sqlite3.h"
@@ -18,11 +19,6 @@
 //   After every query statement the sqlite3_statement need to be reset so
 //   it can be queried again if needed. (This is a stateful operation.)
 
-/* ------------------------------------------------------------------------ */
-/* Defines                                                                  */
-/* ------------------------------------------------------------------------ */
-
-#define FILE_PATH "./ethercat_dev.sqlite"
 
 /* ------------------------------------------------------------------------ */
 /* Structures                                                               */
@@ -37,25 +33,34 @@ struct pdo_entry {
     uint8_t  sync_manager;     /** The default Sync Manager for the data */
     size_t   name_idx;         /** The index into the PDO string list    */
     uint8_t  data_type;        /** The index into the PDO string list    */
+    struct pdo_entry *next;    /** Next entry in the PDO list            */
 };
 typedef struct pdo_entry PdoEntry;
+
+/* ------------------------------------------------------------------------ */
+/* Defines                                                                  */
+/* ------------------------------------------------------------------------ */
+
+#define FILE_PATH "./ethercat_dev.sqlite"
+
+void free_all_pdo_entries(PdoEntry *entry);
 
 /* ------------------------------------------------------------------------ */
 /* SQL - Macros                                                             */
 /* ------------------------------------------------------------------------ */
 
-#define PREPARE_QUERY(db, in, out)       \
-    do {                                 \
-        int ret = sqlite3_prepare_v2(    \
-            db,                          \
-            in,                          \
-            strlen(in),                  \
-            out,                         \
-            NULL                         \
-            );                           \
-        if ( ret != SQLITE_OK ) {        \
-            sqlite3_errmsg(db_ptr);      \
-        }                                \
+#define PREPARE_QUERY(db, in, out)    \
+    do {                              \
+        int ret = sqlite3_prepare_v2( \
+            db,                       \
+            in,                       \
+            strlen(in),               \
+            out,                      \
+            NULL                      \
+            );                        \
+        if ( ret != SQLITE_OK ) {     \
+            sqlite3_errmsg(db_ptr);   \
+        }                             \
     } while (false)
 
 #define FINALIZE_QUERY(stmt_ptr)              \
@@ -74,8 +79,9 @@ static const char SELECT_ALL_DEV_QUERY[] = "\
 SELECT * \
 FROM devices";
 
-static const char FIND_DEVICE[] = "\
-SELECT * \
+
+static const char FIND_DEV_ID[] = "\
+SELECT dev_id \
 FROM devices \
 WHERE vendor_id = ? \
 AND product_code = ? \
@@ -93,37 +99,32 @@ WHERE devices.dev_id = ?";
 /* ------------------------------------------------------------------------ */
 
 int /* return { Number of Entries > 0 | EXIT_FAILURE if < 0 } */
-query_find_pdos_for_dev_id (
+query_dev_id (
     sqlite3 *db_ptr,
-    uint32_t dev_id,
-    PdoEntry *pdo_list
+    uint32_t vendor_id,
+    uint32_t product_code,
+    uint32_t revision_no,
+    uint32_t *dev_id
     )
 {
     int ret = 0;            // Return value temp. value
+    int idx = 0;            // Number of results returned
     sqlite3_stmt *stmt_ptr; // SQL statement handle
 
-
     // Prepare an SQL statement
-    PREPARE_QUERY(db_ptr, FIND_PDOS_FROM_DEV_ID, &stmt_ptr);
+    PREPARE_QUERY(db_ptr, FIND_DEV_ID, &stmt_ptr);
 
     // Bind the data fields to specific data (if needed)
-    sqlite3_bind_int(stmt_ptr, 1, dev_id);
+    sqlite3_bind_int(stmt_ptr, 1, vendor_id);
+    sqlite3_bind_int(stmt_ptr, 2, product_code);
+    sqlite3_bind_int(stmt_ptr, 3, revision_no);
 
     // Run the query, checking for a row match
-    int idx = 0;
     while ( (ret = sqlite3_step(stmt_ptr)) )
     {
         if ( ret == SQLITE_ROW )
         {
-            pdo_list[idx].index = sqlite3_column_int(stmt_ptr, 3);
-            pdo_list[idx].subindex = sqlite3_column_int(stmt_ptr, 4);
-            pdo_list[idx].bit_length = sqlite3_column_int(stmt_ptr, 5);
-            pdo_list[idx].direction = sqlite3_column_int(stmt_ptr, 6);
-            pdo_list[idx].sync_manager = sqlite3_column_int(stmt_ptr, 7);
-            // Unimplemented
-            pdo_list[idx].name_idx = 0;
-            pdo_list[idx].data_type = 0;
-
+            *dev_id = sqlite3_column_int(stmt_ptr, 1);
             idx++;
         }
         else if ( ret == SQLITE_DONE ) // Finished
@@ -146,6 +147,88 @@ fail:
     return -1;
 }
 
+int /* return { Number of Entries > 0 | EXIT_FAILURE if < 0 } */
+query_find_pdos_for_dev_id (
+    sqlite3 *db_ptr,
+    uint32_t dev_id,
+    PdoEntry **pdo_list
+    )
+{
+    int ret = 0;            // Return value temp. value
+    sqlite3_stmt *stmt_ptr; // SQL statement handle
+    bool first_entry = true;
+    PdoEntry *current = NULL;
+    PdoEntry *head = NULL;
+
+    assert(*pdo_list == NULL);
+
+    // Prepare an SQL statement
+    PREPARE_QUERY(db_ptr, FIND_PDOS_FROM_DEV_ID, &stmt_ptr);
+
+    // Bind the data fields to specific data (if needed)
+    sqlite3_bind_int(stmt_ptr, 1, dev_id);
+
+    // Run the query, checking for a row match
+    int idx = 0;
+    while ( (ret = sqlite3_step(stmt_ptr)) )
+    {
+        if ( ret == SQLITE_ROW )
+        {
+            if ( first_entry ) {
+                current = calloc(1, sizeof (PdoEntry) );
+                head = current;
+                first_entry = false;
+            } else {
+                current->next = calloc(1, sizeof (PdoEntry) );
+                current = current->next;
+            }
+            current->index = sqlite3_column_int(stmt_ptr, 3);
+            current->subindex = sqlite3_column_int(stmt_ptr, 4);
+            current->bit_length = sqlite3_column_int(stmt_ptr, 5);
+            current->direction = sqlite3_column_int(stmt_ptr, 6);
+            current->sync_manager = sqlite3_column_int(stmt_ptr, 7);
+            // Unimplemented
+            current->name_idx = 0;
+            current->data_type = 0;
+            // Increment Entry Counter
+            idx++;
+        }
+        else if ( ret == SQLITE_DONE ) // Finished
+        {
+            break;
+        }
+        else // some other error / notification was returned
+        {
+            goto fail;
+        }
+    }
+
+    // Destroy the SQL statement
+    sqlite3_reset(stmt_ptr);
+    FINALIZE_QUERY(stmt_ptr);
+    // Update the result ptr
+    *pdo_list = head;
+    return idx;
+fail:
+    free_all_pdo_entries(head);
+    sqlite3_reset(stmt_ptr);
+    FINALIZE_QUERY(stmt_ptr);
+    return -1;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Utility Fn's                                                             */
+/* ------------------------------------------------------------------------ */
+
+void free_all_pdo_entries(PdoEntry *entry)
+{
+    if ( entry != NULL )
+    {
+        free_all_pdo_entries(entry->next);
+        free(entry);
+    }
+}
+
 /* ------------------------------------------------------------------------ */
 /* Main Fn                                                                  */
 /* ------------------------------------------------------------------------ */
@@ -161,10 +244,10 @@ int main () {
 
     {
         uint32_t db_idx = 1025;
-        PdoEntry *pdo_list = calloc(100, sizeof( PdoEntry ) );
+        PdoEntry *pdo_list = NULL;
         int e_count = query_find_pdos_for_dev_id (
             db_ptr, db_idx,
-            pdo_list
+            &pdo_list
             );
         printf("Found: %d Entries.\n", e_count);
         free(pdo_list);

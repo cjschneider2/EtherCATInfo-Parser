@@ -1,0 +1,2 @@
+class Eeprom(object):
+    pass

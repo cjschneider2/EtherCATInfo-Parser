@@ -1,0 +1,2 @@
+class Fmmu(object):
+    pass
