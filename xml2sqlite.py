@@ -14,8 +14,18 @@ def get_xml_file_list(in_path):
     return files
 
 if __name__ == "__main__":
-    from src import *
-    # Get a list of files
-    files = get_xml_file_list(DEFAULT_XML_DIR)
-    print "Found", len(files), "files."
-    # Parse
+    import src.parser as parse
+    from sys import argv
+    argc = len(argv)
+    # Do the default action of reading all the files in the `DEFAULT_XML_DIR`
+    # and generating the SQLite3 database from the data
+    if argc == 1:
+        device_list = []
+        # Get a list of files
+        files = get_xml_file_list(DEFAULT_XML_DIR)
+        print "Found", len(files), "files."
+        # Parse XML files
+        for f in files:
+            parse.device_from_file(f, device_list)
+        # Create SQLite3 Database
+        print "Created", len(device_list), "device entries."
