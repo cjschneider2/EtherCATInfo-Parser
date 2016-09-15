@@ -1,2 +1,0 @@
-class Mailbox(object):
-    pass

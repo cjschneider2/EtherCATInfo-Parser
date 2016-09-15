@@ -1,9 +1,7 @@
 # The `parser_top_level` function takes the EtherCATInfo XML files and
 # parses out the relevant device profile information
 def device_from_file(file_name, device_list):
-    from objects.device import Device
-    from objects.fmmu import Fmmu
-    from objects.sm import Sm
+    import objects as obj
     from utils import lookup_location_id
     import xml.etree.ElementTree as ET
     tree = ET.parse(file_name)
@@ -12,7 +10,7 @@ def device_from_file(file_name, device_list):
     file_vendor_id = root.find('./Vendor/Id').text
     # `Device` (Optional 0..inf)
     for device in root.iter('Device'):
-        dev = Device()
+        dev = obj.Device()
         # `Type` (Mandatory 1)
         #     Device identity incl. name, product code, revision no
         typ = device.find("Type")
@@ -41,7 +39,7 @@ def device_from_file(file_name, device_list):
             # `RevisionNo`  (Optional) (future use)
             # `SubDevice` (Optional 0..inf)
             #     Used to display EtherCAT slaves built from more than one
-            #     EtherCAT Slave Controller. 
+            #     EtherCAT Slave Controller.
             # `ProductCode` (Optional)
             # `RevisionNo` (Optional)
             # `PreviousDevice` (Optional)
@@ -86,7 +84,7 @@ def device_from_file(file_name, device_list):
             #     to. The reference is defined in the element `Groups`.
         dev.group_type = device.find("GroupType").text
         # `Profile` (Optional 0..inf)
-        #     Description of the used profile and object dictionary 
+        #     Description of the used profile and object dictionary
         #     including the data type definitions.
         # `ChannelInfo`
         # `Dictionary`
@@ -139,7 +137,7 @@ def device_from_file(file_name, device_list):
         #       to map data to non-constructive memory areas.
         # NOTE: Sm count starts at 0
         for fmmu in device.findall("Fmmu"):
-            _fmmu = Fmmu()
+            _fmmu = obj.Fmmu()
             _fmmu.usage = fmmu.text
             dev.fmmu.append(_fmmu)
             # `Sm` (Optional 0..inf)
@@ -155,7 +153,7 @@ def device_from_file(file_name, device_list):
             #     same direction and buffer mode are used the attribute Pdo@Su is
             #     mandatory.
         for sman in device.findall("Sm"):
-            sm = Sm()
+            sm = obj.Sm()
             dev.sm.append(sm)
             sm.typ = sman.text
             sm.min_size = sman.get("MinSize", "")
@@ -176,8 +174,9 @@ def device_from_file(file_name, device_list):
             # NOTE: True for devices with a digital I/O interface
             sm.op_only = sman.get("OpOnly", "")
             # `Su` (Optional 0..inf) (Perhaps mandatory, see above)
-            #     Defines a timing context by defining different datagrams, possibly
-            #     in different frames, which are identified by this string.
+            #     Defines a timing context by defining different datagrams,
+            #     possibly in different frames, which are identified by this
+            #     string.
             # `SeparateSu` (Optional)
             # `SeparateFrame` (Optional)
             # `DependOnInputState` (Optional)
@@ -185,7 +184,7 @@ def device_from_file(file_name, device_list):
             # `RxPdo` (Optional 0..inf)
             #     Description of the output process data.
         for rxp in device.findall("RxPdo"):
-            rx = RxPdo()
+            rx = obj.RxPdo()
             rx.fixed = rxp.get("Fixed", "0")
             rx.sm = rxp.get("Sm", "-1")
             # NOTE: Skipping other RxPdo attributes
@@ -204,7 +203,7 @@ def device_from_file(file_name, device_list):
                 rx.exclude = rxp_exclude.text
                 # `Entry`
             for item in rxp.findall("Entry"):
-                ent = PdoEntry()
+                ent = obj.PdoEntry()
                 ent_idx = item.find("Index")
                 ent_subidx = item.find("SubIndex")
                 ent_bitlen = item.find("BitLen")
@@ -232,7 +231,7 @@ def device_from_file(file_name, device_list):
 
         #     Description of the input process data
         for txp in device.findall("TxPdo"):
-            tx = TxPdo()
+            tx = obj.TxPdo()
             #    '0' -> Pdo Mapping can be changed
             #    '1' -> Pdo not configurable
             tx.fixed = txp.get("Fixed", "0")
@@ -254,7 +253,7 @@ def device_from_file(file_name, device_list):
                 tx.exclude = txp_exclude.text
                 # `Entry`
             for item in txp.findall("Entry"):
-                ent = PdoEntry()
+                ent = obj.PdoEntry()
                 ent_idx = item.find("Index")
                 ent_subidx = item.find("SubIndex")
                 ent_bitlen = item.find("BitLen")
@@ -285,7 +284,7 @@ def device_from_file(file_name, device_list):
         if mailbox is not None:
             # NOTE: if the object isn't present then it's not available in
             #       the slave device
-            dev.mailbox = Mailbox()
+            dev.mailbox = obj.Mailbox()
             # `AoE`
             mbox_aoe = mailbox.find("AoE")
             if mbox_aoe is not None:
@@ -311,14 +310,15 @@ def device_from_file(file_name, device_list):
             if mbox_voe is not None:
                 dev.mailbox.voe = mbox_voe.attrib
                 # `Dc` (Optional 0..1)
-                #     Description of the following synchronization modes if available:
+                #     Description of the following synchronization modes
+                #     if available:
                 #     {Freerun | Synchronous w/ Sm Event | Distributed Clocks}
         dc = device.find("Dc")
         if dc is not None:
-            dev.dc = Dc()
+            dev.dc = obj.Dc()
             # `OpMode` (Optional 0..inf)
             for item in dc.findall("OpMode"):
-                opmode = DcOpMode()
+                opmode = obj.DcOpMode()
                 dc_name = item.find("Name")
                 dc_desc = item.find("Desc")
                 dc_assign = item.find("AssignActivate")
@@ -349,19 +349,23 @@ def device_from_file(file_name, device_list):
                     opmode.shift_time_sync_1 = dc_sft_snc1.text
                     dev.dc.op_mode.append(opmode)
                     # `Slots` (Optional 0..??)
-                    #     Defines the combination of possibilities of the modules which may
-                    #     be used if the device supports Modular Device Profiles (ETG.5001)
+                    #     Defines the combination of possibilities of
+                    #     the modules which may be used if the device
+                    #     supports Modular Device Profiles (ETG.5001)
                     #     The modules are defined in the `Modules` element
                     # `ESC` (Optional 0..??)
-                    #     Initialization values of the EtherCAT Slave Controller Watchdog 
-                    #     registers
+                    #     Initialization values of the EtherCAT Slave
+                    #     Controller Watchdog registers
                     # `Eeprom` (Optional 0..1)
-                    # `AssignToPdi` : '0' -> access assigned to PDI during Init -> PreOp
-                    #               : '1' -> Eeprom PDI access in all states except Init
-                    # NOTE: Either `Eeprom@Data` is present or the other three are present.
+                    # `AssignToPdi` : '0' -> access assigned to PDI during
+                    #                        Init -> PreOp.
+                    #               : '1' -> Eeprom PDI access in all states
+                    #                        except Init.
+                    # NOTE: Either `Eeprom@Data` is present or the other
+                    #       three are present.
                     # NOTE: EEPROM data format is little-endian
         if device.find("Eeprom") is not None:
-            dev.eeprom = Eeprom()
+            dev.eeprom = obj.Eeprom()
             eeprom_data = device.find("./Eeprom/Data")
             eeprom_bytesize = device.find("./Eeprom/ByteSize")
             eeprom_configdata = device.find("./Eeprom/ConfigData")
@@ -372,7 +376,6 @@ def device_from_file(file_name, device_list):
                 dev.eeprom.data = eeprom_data.text
                 # `ByteSize`
             if eeprom_bytesize is not None:
-
                 dev.eeprom.byte_size = eeprom_bytesize.text
                 # `ConfigData`
             if eeprom_configdata is not None:
@@ -380,15 +383,15 @@ def device_from_file(file_name, device_list):
                 # `BootStrap`
             if eeprom_bootstrap is not None:
                 dev.eeprom.bootstrap = eeprom_bootstrap.text
-                #NOTE: There are three possibilities for images and if there is an
-                #      image then only one of these can be chosen
-                #     The hex binary data of a BMP file with dimensions of 16x14 pixels
-                #     which may be shown by config tool.
+                #NOTE: There are three possibilities for images and if
+                #      there is an image then only one of these can be chosen
+                #      The hex binary data of a BMP file with dimensions
+                #      of 16x14 pixels which may be shown by config tool.
                 #NOTE: The color 0xFF00FF is transparent.
                 # `Image16x14` (Optional 0..1)
                 # `ImageFile16x14` (Optional 0..1)
                 # `ImageData16x14` (Optional 0..1)
                 # `VendorSpecific`
                 #     Vendor Specific elements of `DeviceType`
-                # Add our device to the list of devices
+    # Add our device to the list of devices
     device_list.append(dev)

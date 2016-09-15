@@ -29,3 +29,7 @@ if __name__ == "__main__":
             parse.device_from_file(f, device_list)
         # Create SQLite3 Database
         print "Created", len(device_list), "device entries."
+    else:
+        if argv[1] == "-C":
+            # do the c stuff
+            device_list = []

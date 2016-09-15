@@ -1,2 +1,0 @@
-class DcOpMode(object):
-    pass
