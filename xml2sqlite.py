@@ -13,6 +13,23 @@ def get_xml_file_list(in_path):
             files.append(os.path.join(root, filename))
     return files
 
+def do_xml_2_sqlite():
+    device_list = []
+    # Get a list of files
+    files = get_xml_file_list(DEFAULT_XML_DIR)
+    print "Found", len(files), "files."
+    # Parse XML files
+    for f in files:
+        parse.device_from_file(f, device_list)
+    # Create SQLite3 Database
+    print "Created", len(device_list), "device entries."
+
+def do_xml_2_c_header():
+    if argv[1] == "-C":
+        # TODO: call the c stuff
+        device_list = []
+
+
 if __name__ == "__main__":
     import src.parser as parse
     from sys import argv
@@ -20,16 +37,6 @@ if __name__ == "__main__":
     # Do the default action of reading all the files in the `DEFAULT_XML_DIR`
     # and generating the SQLite3 database from the data
     if argc == 1:
-        device_list = []
-        # Get a list of files
-        files = get_xml_file_list(DEFAULT_XML_DIR)
-        print "Found", len(files), "files."
-        # Parse XML files
-        for f in files:
-            parse.device_from_file(f, device_list)
-        # Create SQLite3 Database
-        print "Created", len(device_list), "device entries."
+        do_xml_2_sqlite()
     else:
-        if argv[1] == "-C":
-            # do the c stuff
-            device_list = []
+        do_xml_2_c_header()
