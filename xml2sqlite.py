@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-#DEFAULT_XML_DIR = "./xml_data"
-DEFAULT_XML_DIR = "./xml_test_data"
+DEFAULT_XML_DIR = "./xml_data"
+#DEFAULT_XML_DIR = "./xml_test_data"
 
 # This function gets a list of the XML files from the input path
 def get_xml_file_list(in_path):
@@ -15,14 +15,20 @@ def get_xml_file_list(in_path):
 
 def do_xml_2_sqlite():
     device_list = []
+    import src.gen_sql as gen
+    import os
+    import src.parser as parse
     # Get a list of files
     files = get_xml_file_list(DEFAULT_XML_DIR)
     print "Found", len(files), "files."
     # Parse XML files
     for f in files:
+        print "File:" + f
         parse.device_from_file(f, device_list)
-    # Create SQLite3 Database
     print "Created", len(device_list), "device entries."
+    # Create SQLite3 Database
+    print "Creating SQLite3 database here:" + os.getcwd()
+    gen.generate_sqlite3_db(device_list)
 
 def do_xml_2_c_header():
     if argv[1] == "-C":
@@ -31,7 +37,6 @@ def do_xml_2_c_header():
 
 
 if __name__ == "__main__":
-    import src.parser as parse
     from sys import argv
     argc = len(argv)
     # Do the default action of reading all the files in the `DEFAULT_XML_DIR`

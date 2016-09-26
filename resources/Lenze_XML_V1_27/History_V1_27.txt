@@ -1,0 +1,80 @@
+V1.27
+- new file for new inverter i550 = Lenze_Inverter_i550_20160603.xml for firmware version <= 03.xx
+
+V1.26
+- new file for new inverter i550 =Lenze_Inverter_i550_20151102.xml for firmware version <= 02.xx
+- The i550 used a second file Lenze_i550_esiObjDict_V02.xml for the object dictionary.
+  This file must be copy inside the same folder as the i550 ESI file.
+
+V1.25
+- new file for servo inverter i700 =>Lenze_i700_Motion_07_12_2015.xml for firmware version <= 01.09.03
+
+V1.24
+- new file for servo inverter i700 =>Lenze_i700_Motion_08_06_2015.xml for firmware version <= 01.07.07
+
+V1.23
+- new file for 94xx EtherCAT Modulversion FV 3.0 with TA CIA402 Free Ports => Lenze_E94AYCET_MOTION_20150512.xml
+
+V1.22
+- new file for servo inverter i700 =>Lenze_i700-Motion_01_04_2015.xml for firmware version <= 01.07.06
+
+V1.21
+- new file for servo inverter i700 =>Lenze_i700_Motion_05_02_2015.xml for firmware version <= 01.07.05
+
+V1.20
+- new file for servo inverter i700 => Lenze_i700_Motion_08_05_214.xmlfor firmware version <= 01.06
+- new file for Inverter 8400 ECAT Module V2.1 => Lenze_Inverter_8400_20140410.xml
+
+V1.19
+- new file for servo inverter i700 => Lenze_i700_Motion_18_12_2013.xmlfor firmware version <= 01.05
+
+V1.18
+- new file for servo inverter i700 => Lenze_i700_Motion_07_06_2013.xmlfor firmware version <= 01.04
+
+V1.17
+new file for Inverter 8400 topline P => Lenze_Inverter_8400_IO_20130301.xml
+
+V1.16:
+- new file for servo inverter i700 => Lenze_i700_Motion_09_01_2013.xml for firmware version 01.02
+
+V1.15:
+- new file for servo inverter i700 => Lenze_i700_Motion_21_09_2012.xml
+- new file for IO-1000 system (EPM-S406, EPM-S408 and EPM-S650) => Lenze_IOSystem100_EPM_S130_Modules.xml
+
+V1.14:
+- modification of all xml files Lenze picture / images
+- xml files for IO-1000 system => Lenze_IOSystem1000_EPM_S130_20120425.xml
+- new xml file for 94xx EtherCAT Modulversion FV 3.0 (+FV 2.0) => Lenze_E94AYCET_IO_20120425.xml and Lenze_E94AYCET_MOTION_20120424.xml
+- new xml file for 84xx EtherCAT new picture / images => Lenze_Inverter_8400_IO_20120425.xml
+- new xml file for EMF 2192 EtherCAT new picture / images => Lenze_EMF_2192_IO_Motion_20120425.xml
+- modification of all xml files Lenze picture / images
+
+V1.13:
+Lenze_Inverter_8400_IO_20120109.xml
+- extension at the SDO communication, the communication in connection with a gateway functionality is faster
+8400 StateLine, Highline and TopLine support the new funcionality. 
+The 8400 motec don´t support this functionality at this moment. 
+
+V1.12:
+Lenze_Inverter_8400_IO_20110901.xml
+- add on 8400motec 
+
+V1.11:
+EtherCAT Index 0x1001 at 94xx xml files
+Lenze_E94AYCET_IO_20101019.xml => Lenze_E94AYCET_IO_20101101.xml
+Lenze_E94AYCET_MOTION_20101020.xml => Lenze_E94AYCET_MOTION_20101101.xml
+
+V1.10:
+modification from the 8400 xml file for the 8400 Topline inverter
+Lenze_E84AYCET-V100-160909.xml => Lenze_E84AYCET-V105-210211.xml
+
+V1.9:
+new xml File
+Lenze_E94AYCET_MOTION_20100323.xml => Lenze_E94AYCET_MOTION_20101020.xml
+- changes in some EtherCAT basisc stetting becuase ETG xml Test
+
+Lenze_E94AYCET_V200_IO.xml => Lenze_E94AYCET_IO_20101019.xml
+- modified textstructure for the technology applications
+- all default Ports from every technology application are in the xml file
+- changes in some EtherCAT basisc stetting becuase ETG xml Test
+

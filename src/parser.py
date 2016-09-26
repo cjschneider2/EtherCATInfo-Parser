@@ -7,10 +7,17 @@ def device_from_file(file_name, device_list):
     tree = ET.parse(file_name)
     root = tree.getroot()
     # Setting the vendor_id for the devices in this file
-    file_vendor_id = root.find('./Vendor/Id').text
+    file_vendor_id = root.find('./Vendor/Id')
+    if file_vendor_id is not None:
+        file_vendor_id = file_vendor_id.text
+    else:
+        print "Error:" + file_name + "has no ./Vendor/Id"
     # `Device` (Optional 0..inf)
+    dev = None
     for device in root.iter('Device'):
         dev = obj.Device()
+        if dev is None:
+            continue
         # `Type` (Mandatory 1)
         #     Device identity incl. name, product code, revision no
         typ = device.find("Type")
@@ -393,5 +400,6 @@ def device_from_file(file_name, device_list):
                 # `ImageData16x14` (Optional 0..1)
                 # `VendorSpecific`
                 #     Vendor Specific elements of `DeviceType`
-    # Add our device to the list of devices
-    device_list.append(dev)
+        # Add our device to the list of devices if it exists
+        if dev is not None:
+            device_list.append(dev)

@@ -1,0 +1,713 @@
+<?xml version='1.0' encoding='utf-8'?>
+<EtherCATInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="1.5" xsi:noNamespaceSchemaLocation="EtherCATInfo.xsd">
+  <Vendor>
+    <Id>#x003b</Id>
+    <Name>Lenze</Name>
+    <URL>http://www.lenze.com</URL>
+    <URL LcId="1031">http://www.lenze.de</URL>
+    <ImageData16x14>424DE6000000000000007600000028000000100000000E000000010004000000000070000000C40E0000C40E000000000000000000000000000000008000008000000080800080000000800080008080000080808000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFFFFFFFFFFFFEEEEEFFFFFFFFFFCCCCCCEFFFFFFFFECCCCCCEFFFFFFFFECCEEEEFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFECCEFFFFFFFFFFFFFCCFFFFFFFFFFFFFFFFFFFFFFFFF</ImageData16x14>
+  </Vendor>
+  <Descriptions>
+    <Groups>
+      <Group SortOrder="0">
+        <Type>Drives</Type>
+        <Name LcId="1031">Antriebe</Name>
+        <Name LcId="1033">Drives</Name>
+        <ImageData16x14>424DE6000000000000007600000028000000100000000E000000010004000000000070000000C40E0000C40E000000000000000000000000000000008000008000000080800080000000800080008080000080808000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFCCCCCFFFFFFFFFFCEC8CCFFFFFFFFFCEEC8CCFFFFFFFFCEEEC8CCFFFFFFFCEEEEC8CCFFFFFFCEEEEEC8CCFFFFFFCEEEEFCFCCFFFFFFCEEECFFFFCFFFFFFCEEFCCFFCFFFFFFFCEFFFCCCFFFFFFFFCFFFFFCFFFFFFFFFFCFFFCFFFFFFFFFFFFCFCFFFFFFFFFFFFFFCFFFFFFFFFF</ImageData16x14>
+      </Group>
+    </Groups>
+    <Devices>
+      <Device Physics="YY">
+        <Type ProductCode="#x69055000" CheckProductCode="EQ" RevisionNo="#x0002" CheckRevisionNo="EQ_OR_G" UseLrdLwr="false">Inverter i550 Cabinet</Type>
+        <Name LcId="1033">i550 Inverter FW V02.xx</Name>
+        <URL>http://www.lenze.com</URL>
+        <Info>
+          <StateMachine>
+            <Timeout>
+              <PreopTimeout>3000</PreopTimeout>
+              <SafeopOpTimeout>3000</SafeopOpTimeout>
+              <BackToInitTimeout>3000</BackToInitTimeout>
+              <BackToSafeopTimeout>3000</BackToSafeopTimeout>
+            </Timeout>
+          </StateMachine>
+          <Mailbox>
+            <Timeout>
+              <RequestTimeout>100</RequestTimeout>
+              <ResponseTimeout>2000</ResponseTimeout>
+            </Timeout>
+          </Mailbox>
+          <IdentificationReg134>true</IdentificationReg134>
+        </Info>
+        <GroupType>Drives</GroupType>
+        <Profile>
+          <ProfileNo>402</ProfileNo>
+          <DictionaryFile>Lenze_i550_esiObjDict_V02.xml</DictionaryFile>
+        </Profile>
+        <Fmmu>Outputs</Fmmu>
+        <Fmmu>Inputs</Fmmu>
+        <Fmmu>MBoxState</Fmmu>
+        <Sm Enable="1" DefaultSize="128" MinSize="128" MaxSize="256" StartAddress="#x1000" ControlByte="#x26">MBoxOut</Sm>
+        <Sm Enable="1" DefaultSize="128" MinSize="128" MaxSize="256" StartAddress="#x1100" ControlByte="#x22">MBoxIn</Sm>
+        <Sm Enable="1" DefaultSize="4" MinSize="0" MaxSize="32" StartAddress="#x1200" ControlByte="#x64">Outputs</Sm>
+        <Sm Enable="1" DefaultSize="6" MinSize="0" MaxSize="32" StartAddress="#x1300" ControlByte="#x20">Inputs</Sm>
+        <RxPdo Fixed="1" Sm="2">
+          <Index>#x1603</Index>
+          <Name>RPDO--&gt;Axis A: Velocity mode (vl)</Name>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CiA402 controlword</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6042</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Target velocity vl</Name>
+            <DataType>INT</DataType>
+          </Entry>
+        </RxPdo>
+        <RxPdo>
+          <Index>#x1605</Index>
+          <Name>RPDO--&gt;Axis A: Freely configurable (user)</Name>
+        </RxPdo>
+        <TxPdo Fixed="1" Sm="3">
+          <Index>#x1A03</Index>
+          <Name>Axis A--&gt;TPDO: Velocity mode (vl)</Name>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CiA402 statusword</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6044</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Velocity actual value vl</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x603F</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Error code</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo>
+          <Index>#x1A05</Index>
+          <Name>Axis A--&gt;TPDO: Freely configurable (user)</Name>
+        </TxPdo>
+        <Mailbox DataLinkLayer="true">
+          <CoE DiagHistory="false" SegmentedSdo="false" SdoInfo="false" PdoConfig="true" PdoAssign="true" CompleteAccess="false"/>
+        </Mailbox>
+        <Dc>
+          <OpMode>
+            <Name>Free Run</Name>
+            <Desc>Free Run</Desc>
+            <AssignActivate>#x0000</AssignActivate>
+            <CycleTimeSync0 Factor="0">0</CycleTimeSync0>
+            <ShiftTimeSync0>0</ShiftTimeSync0>
+            <CycleTimeSync1 Factor="0">0</CycleTimeSync1>
+            <ShiftTimeSync1>0</ShiftTimeSync1>
+          </OpMode>
+        </Dc>
+        <Eeprom>
+          <ByteSize>896</ByteSize>
+          <ConfigData>80010A0600010000000000000000</ConfigData>
+        </Eeprom>
+        <ImageData16x14>424DE6000000000000007600000028000000100000000E000000010004000000000070000000000000000000000000000000000000000000000000008000008000000080800080000000800080008080000080808000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFFFFFFFCCCCCCFFFFFFFFFFCFFFECEFFFFFFFFFCFFFECEF80008FFFCFFFECEF00000FFFCFFFECEF00900FFFCFFFECEF00000FFFCFFFECEF80008FFFCCCCCCEFFFFFFFFFCFFFECEFFFFFFFFFCCFFCCEFFFFFFFFFECCCCEEFFFFFFFFFFEEEEEFFFFFFFFFFFFFFFFFFFFFFFFF</ImageData16x14>
+      </Device>
+      <Device Physics="YY">
+        <Type ProductCode="#x69055000" CheckProductCode="EQ" RevisionNo="#x0003" CheckRevisionNo="EQ_OR_G" UseLrdLwr="false">Inverter i550 Cabinet</Type>
+        <Name LcId="1033">i550 Inverter FW V03.xx</Name>
+        <URL>http://www.lenze.com</URL>
+        <Info>
+          <StateMachine>
+            <Timeout>
+              <PreopTimeout>3000</PreopTimeout>
+              <SafeopOpTimeout>3000</SafeopOpTimeout>
+              <BackToInitTimeout>3000</BackToInitTimeout>
+              <BackToSafeopTimeout>3000</BackToSafeopTimeout>
+            </Timeout>
+          </StateMachine>
+          <Mailbox>
+            <Timeout>
+              <RequestTimeout>100</RequestTimeout>
+              <ResponseTimeout>2000</ResponseTimeout>
+            </Timeout>
+          </Mailbox>
+          <IdentificationReg134>true</IdentificationReg134>
+        </Info>
+        <GroupType>Drives</GroupType>
+        <Profile>
+          <ProfileNo>402</ProfileNo>
+          <DictionaryFile>Lenze_i550_esiObjDict_V03.xml</DictionaryFile>
+          <DiagMessages>
+            <DiagMessage>
+              <TextId>194</TextId>
+              <MessageText>NetWordIN1 configuration incorrect</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>140</TextId>
+              <MessageText>CiA: i²*t overload (thermal state)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>195</TextId>
+              <MessageText>Max. output frequency reached</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>196</TextId>
+              <MessageText>Memory module: invalid OEM data</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>197</TextId>
+              <MessageText>EPM data: firmware version incompatible</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>198</TextId>
+              <MessageText>EPM data: firmware type incompatible</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>199</TextId>
+              <MessageText>EPM data: new firmware type detected</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>201</TextId>
+              <MessageText>Invalid para. changeover configuration</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>202</TextId>
+              <MessageText>EPM data: unknown parameter found</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>203</TextId>
+              <MessageText>OEM hardware incompatible</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>204</TextId>
+              <MessageText>Feedback system: speed limit</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>205</TextId>
+              <MessageText>EPM data: PU size incompatible</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>206</TextId>
+              <MessageText>EPM data: new PU size detected</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>208</TextId>
+              <MessageText>Network: overall communic. timeout</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>207</TextId>
+              <MessageText>Network: timeout explicit message</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>209</TextId>
+              <MessageText>Torque limit reached</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>210</TextId>
+              <MessageText>Memory module: wrong type</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>211</TextId>
+              <MessageText>OL DOut or 24V</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>213</TextId>
+              <MessageText>Param. lost</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>214</TextId>
+              <MessageText>iCIF disconnect</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>215</TextId>
+              <MessageText>Keypad Override Active</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>5</TextId>
+              <MessageText>I*t error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>6</TextId>
+              <MessageText>I*t warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>7</TextId>
+              <MessageText>DC bus overvoltage</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>8</TextId>
+              <MessageText>DC bus undervoltage</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>9</TextId>
+              <MessageText>Power unit overtemperature fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>11</TextId>
+              <MessageText>24 V supply critical</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>36</TextId>
+              <MessageText>Motor phase failure</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>37</TextId>
+              <MessageText>Motor phase failure phase U</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>38</TextId>
+              <MessageText>Motor phase failure phase V</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>39</TextId>
+              <MessageText>Motor phase failure phase W</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>43</TextId>
+              <MessageText>Network: PDO mapping error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>45</TextId>
+              <MessageText>Imax: Clamp responded too often</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>64</TextId>
+              <MessageText>Brake resistor: overload fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>65</TextId>
+              <MessageText>Mains phase fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>72</TextId>
+              <MessageText>Motor parameter identification fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>83</TextId>
+              <MessageText>Assertion level monitoring (Low/High)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>84</TextId>
+              <MessageText>Analog input 1 fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>85</TextId>
+              <MessageText>Analog input 2 fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>86</TextId>
+              <MessageText>Power unit unknown</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>93</TextId>
+              <MessageText>Watchdog time-out</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>97</TextId>
+              <MessageText>Internal error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>101</TextId>
+              <MessageText>PU: communication error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>103</TextId>
+              <MessageText>Heat sink temperature sensor fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>104</TextId>
+              <MessageText>Time-out in 8 ms task</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>105</TextId>
+              <MessageText>Time-out in 1 ms task</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>106</TextId>
+              <MessageText>Time-out in 250 us task</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>107</TextId>
+              <MessageText>Time-out in 125 us task</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>108</TextId>
+              <MessageText>Test monitor generated no reaction</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>109</TextId>
+              <MessageText>Test monitor generated warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>110</TextId>
+              <MessageText>Test monitor generated trouble</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>111</TextId>
+              <MessageText>Test monitor generated fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>112</TextId>
+              <MessageText>Test monitor fault with fault reset delayed</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>113</TextId>
+              <MessageText>Test monitor fault with fault reset blocked</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>114</TextId>
+              <MessageText>Memory module is full</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>115</TextId>
+              <MessageText>On-board EEPROM: access error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>116</TextId>
+              <MessageText>Diagnosis transmit message error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>117</TextId>
+              <MessageText>Diagnosis receive message error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>118</TextId>
+              <MessageText>Modbus transmit message error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>212</TextId>
+              <MessageText>Encoder open circuit</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>121</TextId>
+              <MessageText>Trigger/functions connected incorrectly</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>122</TextId>
+              <MessageText>CU: load error ID tag</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>123</TextId>
+              <MessageText>PU: load error ID tag</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>124</TextId>
+              <MessageText>Memory module not present</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>125</TextId>
+              <MessageText>Memory module invalid user data</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>126</TextId>
+              <MessageText>PU: communication mismatch</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>127</TextId>
+              <MessageText>Safe Torque Off error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>130</TextId>
+              <MessageText>PU: communication not synchronous</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>131</TextId>
+              <MessageText>Communication error PU-CU</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>132</TextId>
+              <MessageText>DC bus overvoltage warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>133</TextId>
+              <MessageText>DC bus undervoltage warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>136</TextId>
+              <MessageText>PU overtemperature warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>137</TextId>
+              <MessageText>CiA: Continuous over current (internal)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>138</TextId>
+              <MessageText>CiA: Short circuit (device internal)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>140</TextId>
+              <MessageText>CiA: i²*t overload (thermal state)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>141</TextId>
+              <MessageText>CAN: warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>142</TextId>
+              <MessageText>CAN: bus off</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>144</TextId>
+              <MessageText>CAN: heartbeat time-out consumer 4</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>145</TextId>
+              <MessageText>CAN: heartbeat time-out consumer 3</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>146</TextId>
+              <MessageText>CAN: heartbeat time-out consumer 2</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>147</TextId>
+              <MessageText>CAN: heartbeat time-out consumer 1</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>149</TextId>
+              <MessageText>CAN: RPDO3 time-out</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>150</TextId>
+              <MessageText>CAN: RPDO2 time-out</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>151</TextId>
+              <MessageText>CAN: RPDO1 time-out</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>152</TextId>
+              <MessageText>Motor overcurrent</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>153</TextId>
+              <MessageText>Motor temperature error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>154</TextId>
+              <MessageText>User-defined fault 2</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>155</TextId>
+              <MessageText>User-defined fault 1</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>156</TextId>
+              <MessageText>Motor overspeed</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>157</TextId>
+              <MessageText>Pole position identification fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>158</TextId>
+              <MessageText>Warning invert rotation</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>159</TextId>
+              <MessageText>PU: programming fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>160</TextId>
+              <MessageText>Internal fan warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>161</TextId>
+              <MessageText>Heat sink fan warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>163</TextId>
+              <MessageText>CiA: Short circuit/earth leakage (internal)</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>166</TextId>
+              <MessageText>Analog output 1 fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>167</TextId>
+              <MessageText>Analog output 2 fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>168</TextId>
+              <MessageText>Modbus: network time-out</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>169</TextId>
+              <MessageText>Modbus: incorrect request by master</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>170</TextId>
+              <MessageText>Data not compl. saved before powerdown</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>172</TextId>
+              <MessageText>Network: configuration error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>173</TextId>
+              <MessageText>SDO communication with PU aborted</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>175</TextId>
+              <MessageText>PU: general error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>174</TextId>
+              <MessageText>PU: uC supply voltage drop down</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>176</TextId>
+              <MessageText>Brake resistor: overload warning</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>177</TextId>
+              <MessageText>Network: watchdog timeout</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>178</TextId>
+              <MessageText>Disruption of cyclic data exch.</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>179</TextId>
+              <MessageText>Network: initialisation error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>181</TextId>
+              <MessageText>Automatic start disabled</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>182</TextId>
+              <MessageText>On-board EEPROM: timer overflow </MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>183</TextId>
+              <MessageText>Memory module: timer overflow</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>184</TextId>
+              <MessageText>I2C connection lost</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>185</TextId>
+              <MessageText>I2C bus error</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>186</TextId>
+              <MessageText>Invalid cyclic process data</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>187</TextId>
+              <MessageText>Maximuml allowed troubles exceeded</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>188</TextId>
+              <MessageText>DC-bus voltage to low for power up</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>190</TextId>
+              <MessageText>Keypad removed</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>191</TextId>
+              <MessageText>AC Drive: user fault</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>192</TextId>
+              <MessageText>Network: user fault 1</MessageText>
+            </DiagMessage>
+            <DiagMessage>
+              <TextId>193</TextId>
+              <MessageText>Network: user fault 2</MessageText>
+            </DiagMessage>
+          </DiagMessages>
+        </Profile>
+        <Fmmu>Outputs</Fmmu>
+        <Fmmu>Inputs</Fmmu>
+        <Fmmu>MBoxState</Fmmu>
+        <Sm Enable="1" DefaultSize="128" MinSize="128" MaxSize="256" StartAddress="#x1000" ControlByte="#x26">MBoxOut</Sm>
+        <Sm Enable="1" DefaultSize="128" MinSize="128" MaxSize="256" StartAddress="#x1100" ControlByte="#x22">MBoxIn</Sm>
+        <Sm Enable="1" DefaultSize="4" MinSize="0" MaxSize="32" StartAddress="#x1200" ControlByte="#x64">Outputs</Sm>
+        <Sm Enable="1" DefaultSize="6" MinSize="0" MaxSize="32" StartAddress="#x1300" ControlByte="#x20">Inputs</Sm>
+        <RxPdo Fixed="1" Sm="2">
+          <Index>#x1603</Index>
+          <Name>RPDO4 mapping parameter</Name>
+          <Entry>
+            <Index>#x6040</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CiA: Controlword</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6042</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Target velocity</Name>
+            <DataType>INT</DataType>
+          </Entry>
+        </RxPdo>
+        <RxPdo>
+          <Index>#x1605</Index>
+          <Name>RPDO6 mapping parameter</Name>
+        </RxPdo>
+        <TxPdo Fixed="1" Sm="3">
+          <Index>#x1A03</Index>
+          <Name>TPDO4 mapping parameter</Name>
+          <Entry>
+            <Index>#x6041</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>CiA: Statusword</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x6044</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Velocity actual value</Name>
+            <DataType>INT</DataType>
+          </Entry>
+          <Entry>
+            <Index>#x603F</Index>
+            <SubIndex>0</SubIndex>
+            <BitLen>16</BitLen>
+            <Name>Error code</Name>
+            <DataType>UINT</DataType>
+          </Entry>
+        </TxPdo>
+        <TxPdo>
+          <Index>#x1A05</Index>
+          <Name>TPDO6 mapping parameter</Name>
+        </TxPdo>
+        <Mailbox DataLinkLayer="true">
+          <CoE DiagHistory="true" SegmentedSdo="true" SdoInfo="false" PdoConfig="true" PdoAssign="true" CompleteAccess="false"/>
+        </Mailbox>
+        <Dc>
+          <OpMode>
+            <Name>Free Run</Name>
+            <Desc>Free Run</Desc>
+            <AssignActivate>#x0000</AssignActivate>
+            <CycleTimeSync0 Factor="0">0</CycleTimeSync0>
+            <ShiftTimeSync0>0</ShiftTimeSync0>
+            <CycleTimeSync1 Factor="0">0</CycleTimeSync1>
+            <ShiftTimeSync1>0</ShiftTimeSync1>
+          </OpMode>
+        </Dc>
+        <Eeprom>
+          <ByteSize>896</ByteSize>
+          <ConfigData>80010A0600010000000000000000</ConfigData>
+        </Eeprom>
+        <ImageData16x14>424DE6000000000000007600000028000000100000000E000000010004000000000070000000000000000000000000000000000000000000000000008000008000000080800080000000800080008080000080808000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFFFFFFFCCCCCCFFFFFFFFFFCFFFECEFFFFFFFFFCFFFECEF80008FFFCFFFECEF00000FFFCFFFECEF00900FFFCFFFECEF00000FFFCFFFECEF80008FFFCCCCCCEFFFFFFFFFCFFFECEFFFFFFFFFCCFFCCEFFFFFFFFFECCCCEEFFFFFFFFFFEEEEEFFFFFFFFFFFFFFFFFFFFFFFFF</ImageData16x14>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>
+
