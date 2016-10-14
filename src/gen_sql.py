@@ -79,7 +79,7 @@ def generate_sqlite3_db(devices):
                 if entry.index == "#x0" or entry.index == "0" or entry.sub_index == "":
                     continue
                 # skip entries without a defined Sync-Manager
-                if entry.sm == "-1":
+                if entry.sm == "-1" or entry.sm == "":
                     continue
                 # add the pdo entry to the list
                 #print "\t", entry.name

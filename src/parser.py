@@ -231,10 +231,10 @@ def device_from_file(file_name, device_list):
                     # `DataType`
                 if ent_datatype is not None:
                     ent.data_type = ent_datatype.text
-                    ent.sm = rx.sm
-                    ent.direction = "RX"
-                    rx.entry.append(ent)
-                    dev.rx_pdo.append(rx)
+                ent.sm = rx.sm
+                ent.direction = "RX"
+                rx.entry.append(ent)
+            dev.rx_pdo.append(rx)
 
         #     Description of the input process data
         for txp in device.findall("TxPdo"):
@@ -281,10 +281,10 @@ def device_from_file(file_name, device_list):
                     # `DataType`
                 if ent_datatype is not None:
                     ent.data_type = ent_datatype.text
-                    ent.sm = tx.sm
-                    ent.direction = "TX"
-                    tx.entry.append(ent)
-                    dev.tx_pdo.append(tx)
+                ent.sm = tx.sm
+                ent.direction = "TX"
+                tx.entry.append(ent)
+            dev.tx_pdo.append(tx)
                     # `Mailbox` (Optional 0..1)
                     #     Description of available mailbox protocols
         mailbox = device.find("Mailbox")
