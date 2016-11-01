@@ -1,8 +1,10 @@
+
+
 # The `parser_top_level` function takes the EtherCATInfo XML files and
 # parses out the relevant device profile information
 def device_from_file(file_name, device_list):
-    import objects as obj
-    from utils import lookup_location_id
+    import src.objects as obj
+    from src.utils import lookup_location_id
     import xml.etree.ElementTree as ET
     tree = ET.parse(file_name)
     root = tree.getroot()
@@ -11,7 +13,7 @@ def device_from_file(file_name, device_list):
     if file_vendor_id is not None:
         file_vendor_id = file_vendor_id.text
     else:
-        print "Error:" + file_name + "has no ./Vendor/Id"
+        print("Error:" + file_name + "has no ./Vendor/Id")
     # `Device` (Optional 0..inf)
     dev = None
     for device in root.iter('Device'):
@@ -67,16 +69,16 @@ def device_from_file(file_name, device_list):
             dev.url.append((lc_id, url.text))
             # `Info` (Optional 0..1)
             #    Additional information about the device
-            #info = device.find("Info")
+            # info = device.find("Info")
             #    # `Mailbox`
             #        # `Timeout`
             #            # `RequestTimeout`
-            #mbox_request_timeout = info.find("./Mailbox/Timeout/RequestTimeout")
-            #if mbox_request_timeout is not None:
+            # mbox_request_timeout = info.find("./Mailbox/Timeout/RequestTimeout")
+            # if mbox_request_timeout is not None:
             #    print "MailboxRequestTimeout =", mbox_request_timeout.text
             #            # `ResponseTimeout`
-            #mbox_response_timeout = info.find("./Mailbox/Timeout/ResponseTimeout")
-            #if mbox_response_timeout is not None:
+            # mbox_response_timeout = info.find("./Mailbox/Timeout/ResponseTimeout")
+            # if mbox_response_timeout is not None:
             #    print "MailboxResponseTimeout =", mbox_response_timeout.text
             # `Electrical`
             # `VendorSpecific`

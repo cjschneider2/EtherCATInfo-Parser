@@ -1,14 +1,18 @@
 class DcOpMode(object):
     pass
 
+
 class Eeprom(object):
     pass
+
 
 class Fmmu(object):
     pass
 
+
 class Mailbox(object):
     pass
+
 
 class RxPdo(object):
     def __init__(self):
@@ -20,6 +24,7 @@ class RxPdo(object):
         self.entry = []
     pass
 
+
 class PdoEntry(object):
     def __init__(self):
         self.index = ""
@@ -28,6 +33,7 @@ class PdoEntry(object):
         self.name = ""
         self.data_type = ""
     pass
+
 
 class Device(object):
     def __init__(self):
@@ -49,6 +55,7 @@ class Device(object):
         self.tx_pdo = []
     pass
 
+
 class TxPdo(object):
     def __init__(self):
         self.fixed = ""
@@ -59,8 +66,10 @@ class TxPdo(object):
         self.entry = []
     pass
 
+
 class Sm (object):
     pass
+
 
 class Dc(object):
     def __init__(self):
